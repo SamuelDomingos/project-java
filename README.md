@@ -51,33 +51,34 @@ O **User Management System** é uma aplicação web completa para gerenciamento 
 project-java-main/
 ├── backend/
 │   ├── src/main/java/projectJava/
-│   │   ├── Main.java                 # Ponto de entrada da aplicação
+│   │   ├── Main.java                  # Ponto de entrada da aplicação
 │   │   ├── auth/
-│   │   │   └── Login.java            # Lógica de autenticação
+│   │   │   └── Login.java             # Lógica de autenticação
 │   │   ├── config/
-│   │   │   └── CorsConfig.java       # Configuração de CORS
+│   │   │   └── CorsConfig.java        # Configuração de CORS
 │   │   ├── controllers/
-│   │   │   └── UserController.java   # Controlador de usuários
+│   │   │   ├── AuthController.java    # Controlador de autenticação
+│   │   │   └── UserController.java    # Controlador de usuários
 │   │   ├── db/
 │   │   │   ├── ConnectionFactory.java # Factory de conexão com BD
-│   │   │   └── DatabaseInit.java     # Inicialização do banco
+│   │   │   └── DatabaseInit.java      # Inicialização do banco
 │   │   ├── dto/
-│   │   │   └── LoginRequest.java     # DTO para login
+│   │   │   └── LoginRequest.java      # DTO para login
 │   │   ├── models/
-│   │   │   ├── User.java             # Modelo de usuário
-│   │   │   └── Auth.java             # Modelo de autenticação
+│   │   │   ├── User.java              # Modelo de usuário
+│   │   │   └── Auth.java              # Modelo de autenticação
 │   │   ├── routes/
-│   │   │   ├── UserRoutes.java       # Rotas de usuário
-│   │   │   └── AuthRoutes.java       # Rotas de autenticação
+│   │   │   ├── UserRoutes.java        # Rotas de usuário
+│   │   │   └── AuthRoutes.java        # Rotas de autenticação
 │   │   ├── users/
-│   │   │   ├── UserList.java         # Listagem de usuários
-│   │   │   ├── UserInsert.java       # Inserção de usuários
-│   │   │   ├── UserUpdate.java       # Atualização de usuários
-│   │   │   └── UserDelete.java       # Deleção de usuários
+│   │   │   ├── UserList.java          # Listagem de usuários
+│   │   │   ├── UserInsert.java        # Inserção de usuários
+│   │   │   ├── UserUpdate.java        # Atualização de usuários
+│   │   │   └── UserDelete.java        # Deleção de usuários
 │   │   └── utils/
-│   │       └── ResponseUtils.java    # Utilitários de resposta
-│   ├── pom.xml                       # Configuração Maven
-│   └── .env.example                  # Exemplo de variáveis de ambiente
+│   │       └── ResponseUtils.java     # Utilitários de resposta
+│   ├── pom.xml                        # Configuração Maven
+│   └── .env.example                   # Exemplo de variáveis de ambiente
 │
 ├── frontend/
 │   ├── app/
@@ -152,17 +153,12 @@ Crie um arquivo `.env` na raiz da pasta `backend` baseado no `.env.example`:
 DB_URL=jdbc:mysql://localhost:3306/user_management?useSSL=false&serverTimezone=UTC
 DB_USER=seu_usuario_mysql
 DB_PASS=sua_senha_mysql
-
-USER=admin
-PASS=admin123
 ```
 
 **Variáveis importantes:**
 - `DB_URL`: URL de conexão com o MySQL
 - `DB_USER`: Usuário do banco de dados
 - `DB_PASS`: Senha do banco de dados
-- `USER`: Usuário administrador padrão para login
-- `PASS`: Senha do administrador padrão para login
 
 #### 2.2 Compilar o Projeto
 
@@ -236,10 +232,9 @@ Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
 
 | Comando | Descrição |
 |---|---|
-| `mvn clean install` | Instala dependências e compila o projeto |
+| `mvn compile` | Compila o projeto e baixa as dependências |
 | `mvn exec:java` | Executa o servidor na porta 4567 |
 | `mvn clean` | Limpa arquivos compilados |
-| `mvn test` | Executa testes (se existirem) |
 
 ### Frontend
 
@@ -254,17 +249,20 @@ Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
 
 ## 🔌 Endpoints da API
 
-### Autenticação
+### ⚠️ Importante
 
-**POST** `/auth/login`
+O campo de autenticação foi padronizado como `user` (não `login`). Certifique-se de usar o campo correto ao fazer requisições de login.
+
+**POST** `/auth/login` - Fazer login na aplicação
+
 ```json
 {
-  "login": "admin",
+  "user": "admin",
   "password": "admin123"
 }
 ```
 
-Resposta:
+Resposta de sucesso:
 ```json
 {
   "success": true,
@@ -272,13 +270,59 @@ Resposta:
 }
 ```
 
+Resposta de erro:
+```json
+{
+  "error": "Usuário ou senha inválidos",
+  "status": 401
+}
+```
+
+**POST** `/auth/logout` - Fazer logout da aplicação
+
+Resposta de sucesso:
+```json
+{
+  "success": true,
+  "message": "Logout realizado com sucesso"
+}
+```
+
+> **Credenciais padrão:** As variáveis `USER` e `PASS` do `.env` definem as credenciais do administrador inicial. Por padrão, use `user: admin` e `password: admin123` (ou os valores configurados no `.env`).
+
 ### Usuários
 
 **GET** `/users` - Listar todos os usuários
 
+Resposta:
+```json
+[
+  {
+    "id": 1,
+    "name": "Admin",
+    "login": "admin",
+    "password": "admin123",
+    "active": 1
+  }
+]
+```
+
 **GET** `/users/{id}` - Obter um usuário específico
 
+Resposta:
+```json
+{
+  "id": 1,
+  "name": "Admin",
+  "login": "admin",
+  "password": "admin123",
+  "active": 1
+}
+```
+
 **POST** `/users` - Criar novo usuário
+
+Request:
 ```json
 {
   "name": "João Silva",
@@ -288,7 +332,17 @@ Resposta:
 }
 ```
 
+Resposta de sucesso:
+```json
+{
+  "success": true,
+  "message": "Usuário criado"
+}
+```
+
 **PUT** `/users/{id}` - Atualizar usuário
+
+Request:
 ```json
 {
   "name": "João Silva Atualizado",
@@ -298,7 +352,23 @@ Resposta:
 }
 ```
 
+Resposta de sucesso:
+```json
+{
+  "success": true,
+  "message": "Usuário atualizado com sucesso"
+}
+```
+
 **DELETE** `/users/{id}` - Deletar usuário
+
+Resposta de sucesso:
+```json
+{
+  "success": true,
+  "message": "Usuário deletado com sucesso"
+}
+```
 
 ## 📸 Fluxo da Aplicação
 
@@ -330,36 +400,57 @@ Contribuições são muito bem-vindas! Se você tiver sugestões, encontrar bugs
 
 ## 📋 Checklist para Deployments
 
-- [ ] Todas as variáveis de ambiente configuradas
-- [ ] Banco de dados criado e acessível
-- [ ] Backend testado localmente
-- [ ] Frontend testado localmente
-- [ ] CORS configurado corretamente
-- [ ] NextAuth.js secret gerado com segurança
-- [ ] Verificação de tipos TypeScript passou
-- [ ] Build do frontend compilou sem erros
-- [ ] Testes executados (se aplicável)
-- [ ] Documentação atualizada
+- [ ] Todas as variáveis de ambiente configuradas (`.env` no backend e `.env.local` no frontend)
+- [ ] MySQL rodando e acessível
+- [ ] Backend compilado com `mvn compile`
+- [ ] Backend testado localmente com `mvn exec:java`
+- [ ] Frontend testado localmente com `npm run dev`
+- [ ] CORS configurado corretamente em `CorsConfig.java`
+- [ ] NextAuth.js secret gerado com segurança (`openssl rand -base64 32`)
+- [ ] Verificação de tipos TypeScript passou (`npm run typecheck`)
+- [ ] Build do frontend compilou sem erros (`npm run build`)
+- [ ] Tabela `tb_users` criada automaticamente no MySQL
+- [ ] Acesso com credenciais padrão (admin/admin123) funciona
+- [ ] Endpoints testados com ferramentas como Postman ou Insomnia
 
 ## 🐛 Troubleshooting
 
 ### Erro: "Connection refused" no backend
-- Verifique se o MySQL está rodando
-- Confirme as credenciais no `.env`
+- Verifique se o MySQL está rodando e acessível
+- Confirme as credenciais no `.env` (`DB_USER`, `DB_PASS`)
 - Teste a conexão com: `mysql -u usuario -p -h localhost`
+- Certifique-se de que o banco de dados `user_management` existe
 
 ### Erro: "CORS error" no frontend
 - Verifique se o backend está rodando na porta 4567
-- Confirme `NEXT_PUBLIC_API_URL` no `.env.local`
+- Confirme `NEXT_PUBLIC_API_URL` no `.env.local` (deve ser `http://localhost:4567`)
 - Verifique a configuração de CORS no `CorsConfig.java`
+- Limpe o cache do navegador
+
+### Erro ao fazer login: "Campos obrigatórios"
+- Verifique se está enviando os campos `user` e `password` (não `login`)
+- Confirme que os campos não estão vazios na requisição
 
 ### Erro: "Invalid NextAuth Secret"
 - Gere um novo secret: `openssl rand -base64 32`
-- Atualize o `.env.local` com o novo valor
+- Atualize o `.env.local` com o novo valor em `NEXTAUTH_SECRET`
 
-### Banco de dados vazio
-- Execute os comandos SQL fornecidos na seção 3.3
-- Reinicie o backend para carregar os dados
+### Erro ao executar `mvn exec:java`
+- Certifique-se de ter executado `mvn compile` antes
+- Verifique se Java está corretamente instalado: `java -version`
+- Limpe o projeto: `mvn clean` e compile novamente
+- Verifique se a porta 4567 não está em uso: `netstat -tlnp | grep 4567`
+
+### Tabela não está sendo criada
+- A tabela `tb_users` é criada automaticamente pelo `DatabaseInit.java`
+- Se não funcionar, verifique se o MySQL está rodando
+- Verifique as credenciais do banco no `.env`
+- Verifique as permissões do usuário MySQL para criar tabelas
+
+### Erro: "Usuário ou senha inválidos"
+- Confirme que está usando as credenciais corretas do `.env` (`USER` e `PASS`)
+- Por padrão: `user: admin` e `password: admin123`
+- Verifique se digitou corretamente sem espaços
 
 ## 📜 Licença
 
@@ -367,12 +458,14 @@ Este projeto está licenciado sob a Licença MIT. Veja o arquivo `LICENSE` para 
 
 ## 👤 Autor
 
-**Francisco Samuel Crispim Domingos**
+**Francisco Samuel Crispim Domingos** — [GitHub](https://github.com/seu-usuario) | [LinkedIn](https://www.linkedin.com/in/seu-perfil/)
 
 ## 📞 Suporte
 
 Se tiver dúvidas ou precisa de ajuda:
-- Consulte a documentação do [Spark Framework](http://www.sparkjava.com/) e [Next.js](https://nextjs.org/docs)
+- Consulte a documentação do [Spark Framework](http://www.sparkjava.com/)
+- Consulte a documentação do [Next.js](https://nextjs.org/docs)
+- Abra uma [issue](https://github.com/seu-usuario/project-java-main/issues) no repositório
 
 ---
 
