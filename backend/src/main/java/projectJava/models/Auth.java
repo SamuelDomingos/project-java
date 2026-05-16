@@ -29,12 +29,4 @@ public class Auth {
 
         return true;
     }
-
-    public boolean isLogged() {
-        return loggedUser != null;
-    }
-
-    public String getLoggedUser() {
-        return loggedUser;
-    }
 }

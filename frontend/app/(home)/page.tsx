@@ -4,6 +4,7 @@ import { getUsers } from "@/lib/api/user"
 import { AlertCircle } from "lucide-react"
 import TableUsersSkeleton from "./_components/tableUsersSkeleton"
 import { ModeToggle } from "@/components/modeToggle"
+import ButtonLogout from "./_components/buttonLogout"
 
 const PageHome = async () => {
   const response = await getUsers()
@@ -30,7 +31,10 @@ const PageHome = async () => {
             </p>
           </div>
 
-          <ModeToggle />
+          <div className="flex items-center gap-2">
+            <ModeToggle />
+            <ButtonLogout />
+          </div>
         </div>
         {hasError ? (
           <div className="flex items-center gap-4 rounded-lg border border-destructive/20 bg-destructive/50 p-6">

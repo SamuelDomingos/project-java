@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react"
 import { loginSchema } from "../_schema/authForm"
 import z from "zod"
 import { toast } from "sonner"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 
 export const useAuthForm = () => {
   const router = useRouter()

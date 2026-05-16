@@ -1,36 +1,95 @@
 package projectJava.auth;
 
-import io.github.cdimascio.dotenv.Dotenv;
+import projectJava.db.ConnectionFactory;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class Login {
 
-    private static final Dotenv dotenv = Dotenv.load();
-
     private boolean authenticated = false;
+
     private String user;
 
-    public boolean authenticate(String login, String password) {
+    private String errorMessage;
 
-        String envUser = dotenv.get("USER");
-        String envPass = dotenv.get("PASS");
+    public boolean authenticate(
+            String login,
+            String password) {
 
-        if (login == null || login.isEmpty()
-                || password == null || password.isEmpty()) {
+        if (login == null
+                || login.trim().isEmpty()
+                || password == null
+                || password.trim().isEmpty()) {
+
+            errorMessage = "Campos obrigatórios";
+
             return false;
         }
 
-        if (envUser == null || envPass == null) {
-            return false;
-        }
+        String sql = "SELECT login, password, active " +
+                "FROM tb_users " +
+                "WHERE login = ?";
 
-        if (login.equals(envUser) && password.equals(envPass)) {
+        try (
+                Connection conn = ConnectionFactory.getConnection();
+
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, login);
+
+            ResultSet rs = stmt.executeQuery();
+
+            if (!rs.next()) {
+
+                errorMessage = "Usuário não encontrado";
+
+                authenticated = false;
+
+                return false;
+            }
+
+            String dbPassword = rs.getString("password");
+
+            int active = rs.getInt("active");
+
+            if (active == 0) {
+
+                errorMessage = "Usuário inativo";
+
+                authenticated = false;
+
+                return false;
+            }
+
+            if (!dbPassword.equals(password)) {
+
+                errorMessage = "Senha incorreta";
+
+                authenticated = false;
+
+                return false;
+            }
+
             authenticated = true;
-            user = login;
-            return true;
-        }
 
-        authenticated = false;
-        return false;
+            user = rs.getString("login");
+
+            errorMessage = null;
+
+            return true;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            authenticated = false;
+
+            errorMessage = "Erro interno do servidor";
+
+            return false;
+        }
     }
 
     public boolean isAuthenticated() {
@@ -39,5 +98,9 @@ public class Login {
 
     public String getUser() {
         return user;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
     }
 }
